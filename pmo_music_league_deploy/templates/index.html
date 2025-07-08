@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PMO Music League</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #AA00CC 0%, #8B008B 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #AA00CC, #8B008B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            background: linear-gradient(45deg, #AA00CC, #8B008B);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(170, 0, 204, 0.3);
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .stat:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 20px;
+            border: 2px solid #AA00CC;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #8B008B;
+            box-shadow: 0 0 0 3px rgba(170, 0, 204, 0.1);
+        }
+
+        .season-filter, .round-filter {
+            padding: 12px 20px;
+            border: 2px solid #AA00CC;
+            border-radius: 25px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+            min-width: 150px;
+        }
+
+        .season-filter:focus, .round-filter:focus {
+            outline: none;
+            border-color: #8B008B;
+            box-shadow: 0 0 0 3px rgba(170, 0, 204, 0.1);
+        }
+
+        .clear-btn {
+            padding: 12px 25px;
+            background: #DC143C;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .clear-btn:hover {
+            background: #B22222;
+        }
+
+        .per-page-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .per-page-selector select {
+            padding: 8px 12px;
+            border: 2px solid #AA00CC;
+            border-radius: 15px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            border: 2px solid #AA00CC;
+            background: white;
+            color: #AA00CC;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #AA00CC;
+            color: white;
+        }
+
+        .pagination button:disabled {
+            border-color: #ddd;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .pagination button.active {
+            background: #AA00CC;
+            color: white;
+        }
+
+        .pagination .page-info {
+            color: #666;
+            font-size: 14px;
+            margin: 0 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #7f8c8d;
+        }
+
+        .songs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .songs-table th {
+            background: linear-gradient(45deg, #AA00CC, #8B008B);
+            color: white;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .songs-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+
+        .songs-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .song-title {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .song-artist {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .round-badge {
+            background: #9932CC;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            white-space: nowrap;
+        }
+
+        .season-badge {
+            background: #DA70D6;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.7em;
+            margin-left: 5px;
+        }
+
+        .vote-info {
+            text-align: center;
+        }
+
+        .points {
+            font-weight: bold;
+            color: #8B008B;
+        }
+
+        .vote-count {
+            font-size: 0.8em;
+            color: #7f8c8d;
+        }
+
+        .comment {
+            font-style: italic;
+            color: #666;
+            max-width: 250px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .comment:hover {
+            color: #333;
+        }
+
+        .comment.expanded {
+            white-space: normal;
+            max-width: none;
+        }
+
+        .comment.truncated {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .comment-toggle {
+            color: #AA00CC;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+
+        .spotify-link, .playlist-link {
+            color: #1db954;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 12px;
+            border: 1px solid #1db954;
+            font-size: 0.8em;
+            display: inline-block;
+            margin: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .spotify-link:hover, .playlist-link:hover {
+            background: #1db954;
+            color: white;
+        }
+
+        .playlist-link {
+            color: #3498db;
+            border-color: #3498db;
+        }
+
+        .playlist-link:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .url-cell {
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .duplicate-indicator {
+            background: #f39c12;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.7em;
+            margin-left: 5px;
+        }
+
+        .results-count {
+            margin: 15px 0;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        @media (max-width: 768px) {
+            .search-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                min-width: auto;
+            }
+
+            .season-filter, .round-filter {
+                min-width: auto;
+            }
+            
+            .per-page-selector {
+                margin-left: 0;
+                justify-content: center;
+            }
+            
+            .stats {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .songs-table {
+                font-size: 0.8em;
+            }
+            
+            .songs-table th,
+            .songs-table td {
+                padding: 6px 4px;
+            }
+
+            .url-cell {
+                min-width: 80px;
+            }
+
+            .spotify-link, .playlist-link {
+                font-size: 0.7em;
+                padding: 2px 4px;
+                margin: 1px;
+            }
+
+            .pagination {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .pagination button {
+                margin: 2px;
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PMO Music League</h1>
+        
+        <div class="stats" id="stats">
+            <div class="stat">
+                <span class="stat-number" id="total-songs">--</span>
+                <span class="stat-label">Total Songs</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number" id="total-rounds">--</span>
+                <span class="stat-label">Rounds</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number" id="total-competitors">--</span>
+                <span class="stat-label">Competitors</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number" id="total-votes">--</span>
+                <span class="stat-label">Votes Cast</span>
+            </div>
+        </div>
+
+        <div class="search-filters">
+            <input type="text" class="search-box" id="search-input" placeholder="Search by song title, artist, submitter, or theme...">
+            <select class="season-filter" id="season-filter">
+                <option value="">All Seasons</option>
+            </select>
+            <select class="round-filter" id="round-filter">
+                <option value="">All Rounds</option>
+            </select>
+            <button class="clear-btn" onclick="clearFilters()">Clear</button>
+            <div class="per-page-selector">
+                <label for="per-page">Show:</label>
+                <select id="per-page">
+                    <option value="25">25</option>
+                    <option value="50" selected>50</option>
+                    <option value="100">100</option>
+                    <option value="200">200</option>
+                </select>
+                <span>per page</span>
+            </div>
+        </div>
+
+        <div class="results-count" id="results-count"></div>
+
+        <div class="pagination" id="pagination-top" style="display: none;"></div>
+
+        <div class="loading" id="loading">Loading songs...</div>
+
+        <table class="songs-table" id="songs-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Song</th>
+                    <th>Artist</th>
+                    <th>Album</th>
+                    <th>Submitter</th>
+                    <th>Round/Theme</th>
+                    <th>Votes</th>
+                    <th>Links</th>
+                    <th>Comment</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="songs-tbody">
+            </tbody>
+        </table>
+
+        <div class="pagination" id="pagination-bottom" style="display: none;"></div>
+    </div>
+
+    <script>
+        let allSongs = [];
+        let filteredSongs = [];
+        let currentPage = 1;
+        let perPage = 50;
+        let totalPages = 1;
+        let totalResults = 0;
+        let allRounds = [];
+
+        // Load initial data
+        async function loadData() {
+            try {
+                // Load stats
+                const statsResponse = await fetch('/api/stats');
+                const stats = await statsResponse.json();
+                
+                document.getElementById('total-songs').textContent = stats.total_songs.toLocaleString();
+                document.getElementById('total-rounds').textContent = stats.total_rounds;
+                document.getElementById('total-competitors').textContent = stats.total_competitors;
+                document.getElementById('total-votes').textContent = stats.total_votes.toLocaleString();
+                
+                // Populate season filter
+                const seasonFilter = document.getElementById('season-filter');
+                stats.seasons.forEach(season => {
+                    const option = document.createElement('option');
+                    option.value = season;
+                    option.textContent = `Season ${season}`;
+                    seasonFilter.appendChild(option);
+                });
+
+                // Load rounds
+                await loadRounds();
+
+                // Load songs
+                await loadSongs();
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('loading').textContent = 'Error loading data. Make sure the Flask app is running.';
+            }
+        }
+
+        async function loadRounds() {
+            try {
+                const season = document.getElementById('season-filter').value;
+                const params = new URLSearchParams();
+                if (season) params.append('season', season);
+
+                const response = await fetch(`/api/rounds?${params}`);
+                allRounds = await response.json();
+                
+                // Update round filter
+                const roundFilter = document.getElementById('round-filter');
+                roundFilter.innerHTML = '<option value="">All Rounds</option>';
+                
+                allRounds.forEach(round => {
+                    const option = document.createElement('option');
+                    option.value = round.id;
+                    option.textContent = `${round.name} (S${round.season})`;
+                    roundFilter.appendChild(option);
+                });
+                
+            } catch (error) {
+                console.error('Error loading rounds:', error);
+            }
+        }
+
+        async function loadSongs() {
+            try {
+                const searchTerm = document.getElementById('search-input').value;
+                const season = document.getElementById('season-filter').value;
+                const round = document.getElementById('round-filter').value;
+                perPage = parseInt(document.getElementById('per-page').value);
+                
+                const params = new URLSearchParams();
+                if (searchTerm) params.append('search', searchTerm);
+                if (season) params.append('season', season);
+                if (round) params.append('round', round);
+                params.append('page', currentPage);
+                params.append('per_page', perPage);
+
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('songs-table').style.display = 'none';
+
+                const response = await fetch(`/api/songs?${params}`);
+                const data = await response.json();
+                
+                allSongs = data.songs;
+                filteredSongs = allSongs;
+                totalPages = data.pagination.total_pages;
+                totalResults = data.pagination.total_results;
+                
+                displaySongs();
+                updatePagination();
+                
+            } catch (error) {
+                console.error('Error loading songs:', error);
+            }
+        }
+
+        function updatePagination() {
+            const paginationTop = document.getElementById('pagination-top');
+            const paginationBottom = document.getElementById('pagination-bottom');
+            
+            if (totalPages <= 1) {
+                paginationTop.style.display = 'none';
+                paginationBottom.style.display = 'none';
+                return;
+            }
+            
+            const paginationHTML = generatePaginationHTML();
+            paginationTop.innerHTML = paginationHTML;
+            paginationBottom.innerHTML = paginationHTML;
+            paginationTop.style.display = 'flex';
+            paginationBottom.style.display = 'flex';
+        }
+
+        function generatePaginationHTML() {
+            let html = '';
+            
+            // Previous button
+            html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>← Previous</button>`;
+            
+            // Page numbers
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+            
+            if (startPage > 1) {
+                html += `<button onclick="goToPage(1)">1</button>`;
+                if (startPage > 2) html += '<span>...</span>';
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button onclick="goToPage(${i})" ${i === currentPage ? 'class="active"' : ''}>${i}</button>`;
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += '<span>...</span>';
+                html += `<button onclick="goToPage(${totalPages})">${totalPages}</button>`;
+            }
+            
+            // Next button
+            html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>Next →</button>`;
+            
+            // Page info
+            const start = (currentPage - 1) * perPage + 1;
+            const end = Math.min(currentPage * perPage, totalResults);
+            html += `<div class="page-info">Showing ${start}-${end} of ${totalResults.toLocaleString()}</div>`;
+            
+            return html;
+        }
+
+        function goToPage(page) {
+            if (page >= 1 && page <= totalPages && page !== currentPage) {
+                currentPage = page;
+                loadSongs();
+                // Scroll to top of table
+                document.getElementById('songs-table').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function displaySongs() {
+            const tbody = document.getElementById('songs-tbody');
+            const loading = document.getElementById('loading');
+            const table = document.getElementById('songs-table');
+            const resultsCount = document.getElementById('results-count');
+            
+            loading.style.display = 'none';
+            table.style.display = 'table';
+            
+            resultsCount.textContent = `Found ${totalResults.toLocaleString()} songs total`;
+            
+            tbody.innerHTML = '';
+            
+            // Track duplicate songs within current page
+            const songCounts = {};
+            filteredSongs.forEach(song => {
+                const songKey = `${song.title.toLowerCase()}-${song.artist.toLowerCase()}`;
+                songCounts[songKey] = (songCounts[songKey] || 0) + 1;
+            });
+            
+            filteredSongs.forEach(song => {
+                const songKey = `${song.title.toLowerCase()}-${song.artist.toLowerCase()}`;
+                const isDuplicate = songCounts[songKey] > 1;
+                
+                const row = document.createElement('tr');
+                
+                // Handle comment display
+                const comment = song.comment || '';
+                const isLongComment = comment.length > 50;
+                const truncatedComment = isLongComment ? comment.substring(0, 50) + '...' : comment;
+                
+                const commentHtml = comment ? (isLongComment ? 
+                    `<div class="comment truncated" data-full="${comment}" data-truncated="${truncatedComment}" onclick="toggleComment(this)">${truncatedComment} <span class="comment-toggle">more</span></div>` :
+                    `<div class="comment">${comment}</div>`
+                ) : '';
+
+                // Create links HTML
+                const linksHtml = `
+                    <div class="url-cell">
+                        ${song.spotify_url ? `<a href="${song.spotify_url}" target="_blank" class="spotify-link">🎵 Song</a><br>` : ''}
+                        ${song.playlist_url ? `<a href="${song.playlist_url}" target="_blank" class="playlist-link">📝 Playlist</a>` : ''}
+                    </div>
+                `;
+                
+                row.innerHTML = `
+                    <td>
+                        <div class="song-title">${song.title}</div>
+                        ${isDuplicate ? '<span class="duplicate-indicator">DUPLICATE</span>' : ''}
+                    </td>
+                    <td><div class="song-artist">${song.artist}</div></td>
+                    <td>${song.album || ''}</td>
+                    <td>${song.submitter}</td>
+                    <td>
+                        <span class="round-badge">${song.round_name}</span>
+                        <span class="season-badge">S${song.season}</span>
+                    </td>
+                    <td class="vote-info">
+                        <div class="points">${song.total_points} pts</div>
+                        <div class="vote-count">${song.vote_count} votes</div>
+                    </td>
+                    <td>${linksHtml}</td>
+                    <td>${commentHtml}</td>
+                    <td>${new Date(song.created).toLocaleDateString()}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function toggleComment(element) {
+            const fullText = element.getAttribute('data-full');
+            const truncatedText = element.getAttribute('data-truncated');
+            const isExpanded = element.classList.contains('expanded');
+            
+            if (isExpanded) {
+                element.innerHTML = truncatedText + ' <span class="comment-toggle">more</span>';
+                element.classList.remove('expanded');
+                element.classList.add('truncated');
+            } else {
+                element.innerHTML = fullText + ' <span class="comment-toggle">less</span>';
+                element.classList.remove('truncated');
+                element.classList.add('expanded');
+            }
+        }
+
+        function clearFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('season-filter').value = '';
+            document.getElementById('round-filter').value = '';
+            currentPage = 1;
+            loadRounds(); // Reload all rounds
+            loadSongs();
+        }
+
+        // Event listeners
+        document.getElementById('search-input').addEventListener('input', 
+            debounce(() => {
+                currentPage = 1; // Reset to first page on search
+                loadSongs();
+            }, 500)
+        );
+        
+        document.getElementById('season-filter').addEventListener('change', async () => {
+            currentPage = 1; // Reset to first page on filter change
+            document.getElementById('round-filter').value = ''; // Clear round filter
+            await loadRounds(); // Reload rounds for new season
+            loadSongs();
+        });
+
+        document.getElementById('round-filter').addEventListener('change', () => {
+            currentPage = 1; // Reset to first page on filter change
+            loadSongs();
+        });
+
+        document.getElementById('per-page').addEventListener('change', () => {
+            currentPage = 1; // Reset to first page on per-page change
+            loadSongs();
+        });
+
+        // Debounce function to avoid too many API calls while typing
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Load data when page loads
+        loadData();
+    </script>
+</body>
+</html>
